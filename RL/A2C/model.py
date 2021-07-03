@@ -14,6 +14,7 @@ class AdvantageActorCriticAgent(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim=256):
         super(AdvantageActorCriticAgent, self).__init__()
         # Strategy pi, giving the state distribution of a_t under s_t
+        # Actions are executed according to probability sampling
         self.actor = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),

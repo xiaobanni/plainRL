@@ -143,7 +143,7 @@ def train(cfg, envs, agent):
         # baseline: Q(s,a) - V(s)
         advantage = returns - values
 
-        # loss = - E(V(s)) = - sum{ pi(a|s)*Q(s,a) }
+        # Objective function: g(s,a;\theta) = [Q(s,a)-V(s)] * \delta ln(pi(a|s;theta) )
         actor_loss = -(log_probs * advantage.detach()).mean()
         # loss = 1/2[v(t)-y_t]^2
         critic_loss = advantage.pow(2).mean()

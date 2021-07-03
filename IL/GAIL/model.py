@@ -74,6 +74,7 @@ class Discriminator(nn.Module):
         self.linear3.bias.data.mul_(0.0)
 
     def forward(self, x):
+        # Discriminator measures the occupancy measurement
         x = torch.tanh(self.linear1(x))
         x = torch.tanh(self.linear2(x))
         prob = torch.sigmoid(self.linear3(x))

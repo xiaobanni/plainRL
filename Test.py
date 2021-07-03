@@ -10,15 +10,11 @@ import torch
 from torch.distributions import Categorical
 import torch.nn.functional as F
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-
-def start():
-    try:
-        a = np.load("xxx.npy")
-    except FileNotFoundError as e:
-        # print(e.errno)
-        assert False
-    print("hello world!")
-
-
-start()
+fig, ax = plt.subplots()
+x = np.linspace(0, 10, 100)
+y1, y2 = np.sin(x), np.cos(x)
+ax.plot(x, y1, y2)
+fig.show()

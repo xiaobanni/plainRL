@@ -88,10 +88,12 @@ def train(cfg, envs, agent):
 
         for _ in range(cfg.gae_steps):
             state = torch.FloatTensor(state).to(cfg.device)
+            # value is given by critic
             dist, value = agent.model(state)
             action = dist.sample()
             # GAIL needs to allow the agent to interact with the environment,
-            # but cannot get rewards from the environment
+            # but cannot get rewards from the environment.
+            # Instead, get rewards from Discriminator
             next_state, _, done, _ = envs.step(action.cpu().numpy())
             reward = expert_reward(cfg, agent, state, action.cpu().numpy())
 
@@ -134,6 +136,8 @@ def train(cfg, envs, agent):
 
         next_state = torch.FloatTensor(next_state).to(cfg.device)
         _, next_value = agent.model(next_state)
+        # values are given by critic
+        # rewards are given by discriminator
         returns = agent.compute_gae(cfg, next_value, rewards, masks, values)
 
         returns = torch.cat(returns).detach()
@@ -147,6 +151,8 @@ def train(cfg, envs, agent):
             # PPO improves the Actor part,
             # which is to improve the strategy parameter update
             ppo_update(agent, cfg, states, actions, log_probs, returns, advantage)
+
+        # Training discriminator
 
         # np.random.randint(start,end,sample_total_num)
         expert_state_action = expert_trajectory[

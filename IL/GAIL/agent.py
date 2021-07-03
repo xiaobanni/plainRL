@@ -25,6 +25,15 @@ class GAIL:
         self.discriminator_loss = 0
 
     def compute_gae(self, cfg, next_value, rewards, masks, values):
+        """
+
+        :param cfg:
+        :param next_value: given by critic
+        :param rewards: given by discriminator, In GAIL, discriminator is equal to environment reward in RL
+        :param masks:
+        :param values: given by critic
+        :return:
+        """
         values = values + [next_value]
         gae = 0
         returns = []

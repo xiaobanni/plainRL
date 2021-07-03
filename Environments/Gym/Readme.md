@@ -138,3 +138,10 @@ NOTE: Your environment object could be wrapped by the TimeLimit wrapper, if crea
 Maximize your score in the Atari 2600 game Pong. In this environment, the observation is an RGB image of the screen, which is an array of shape (210, 160, 3) Each action is repeatedly performed for a duration of $k$ frames, where $k$ is uniformly sampled from ${2, 3, 4}$.
 
 <img src="https://banni.oss-cn-beijing.aliyuncs.com/img/20210430210150.png" alt="image-20210430210150757" style="zoom:50%;" />
+
+### [Hopper-v2](http://gym.openai.com/envs/Hopper-v2/)
+
+![image-20210510155643492](https://banni.oss-cn-beijing.aliyuncs.com/img/20210510155643.png)
+
+[环境介绍](https://blog.paperspace.com/physics-control-tasks-with-deep-reinforcement-learning/)
+

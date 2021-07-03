@@ -12,7 +12,7 @@ curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 class DQNConfig:
     def __init__(self, env="CartPole-v0", train_eps=300):
-        self.algo = "DQN"
+        self.algo = "Forward-Dynamic-Model"
         self.env = env
         self.result_path = curr_dir + os.sep + "results" + os.sep \
                            + self.env + os.sep + curr_time + os.sep
@@ -61,8 +61,8 @@ def train(cfg, env, agent):
 
 def main():
     get_env_version()
-    cfg = DQNConfig(env="CartPole-v0", train_eps=100)
-    # cfg = DQNConfig(env="MountainCar-v0", train_eps=1000)
+    cfg = DQNConfig(env="CartPole-v0", train_eps=200)
+    # cfg = DQNConfig(env="MountainCar-v0", train_eps=500)
     get_env_information(env_name=cfg.env)
     env = gym.make(cfg.env)
     env.seed(0)
