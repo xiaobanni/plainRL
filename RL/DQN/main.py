@@ -12,7 +12,7 @@ curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 class DQNConfig:
     def __init__(self, env="CartPole-v0", train_eps=300):
-        self.algo = "Forward-Dynamic-Model"
+        self.algo = "DQN"
         self.env = env
         self.result_path = curr_dir + os.sep + "results" + os.sep \
                            + self.env + os.sep + curr_time + os.sep
