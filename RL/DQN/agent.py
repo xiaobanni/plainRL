@@ -11,7 +11,7 @@ import torch.optim as optim
 import random
 import math
 from model import MLP
-from replay_buffer import ReplayBuffer
+from RL.replay_buffer import ReplayBuffer
 from Common.utils import to_tensor_float
 
 
@@ -42,6 +42,7 @@ class DQN:
         # Select actions using e—greedy principle
         self.frame_idx += 1
         if random.random() > self.epsilon(self.frame_idx):
+            # Will not track the gradient
             with torch.no_grad():
                 # Although Q(s,a) is written in the pseudocode of the original paper,
                 # it is actually the value of Q(s) output |A| dimension

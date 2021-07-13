@@ -134,4 +134,5 @@ dmypy.json
 # Saved Results
 *.pth
 *.npy
+!/IL/GAIL/*.npy
 *.pkl

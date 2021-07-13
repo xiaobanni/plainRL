@@ -13,3 +13,4 @@ def plot_rewards(rewards, smooth_rewards, tag="train", env='CartPole-v0', algo="
     if save:
         plt.savefig(path + "rewards_curve_{}".format(tag))
     plt.show()
+    print("=====Plotted results!=====")

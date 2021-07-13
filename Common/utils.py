@@ -41,3 +41,13 @@ def get_env_information(env_name="CartPole-v0"):
     print("env_name = {}".format(env_name))
     print('Observation space = {}'.format(env.observation_space))
     print('Action space = {}'.format(env.action_space))
+
+
+def get_smooth_rewards(rewards, smooth_rate=0.9):
+    smooth_rewards = []
+    for i in rewards:
+        if smooth_rewards:
+            smooth_rewards.append(smooth_rate * smooth_rewards[-1] + 0.1 * i)
+        else:
+            smooth_rewards.append(i)
+    return smooth_rewards

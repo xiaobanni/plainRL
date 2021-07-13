@@ -1,9 +1,23 @@
+**Important One**
+
 ==核心思想：Actor在给定状态下给定一个动作分布，执行动作时在该分布中采样，Actor的目标是让$ \boldsymbol{g}(s, a ; \boldsymbol{\theta})=[\underbrace{Q_{\pi}(s, a)-V_{\pi}(s)}_{\text {优势函数 }}] \cdot \nabla_
 {\boldsymbol{\theta}} \ln \pi(a \mid s ; \boldsymbol{\theta})$越大；Critic的目标是让TD误差越小。==
 
 ==Actor的优化目标是$\pi_\theta(a|s)$，这也是策略梯度的由来。==
 
 
+
+**Important Two**
+
+==不可以使用回访数组【同策略】的原因==
+
+==虽然传统的强化学习用 $Q_{\pi}$ 作为确定性的策略控制智能体，但是现在 $Q_{\pi}$ 通常被用于评价策略的好坏，而非用于控制智能体。 $Q_{\pi}$ 常与策略函数 $\pi$ 结合使用，被称作 Actor-Critic $（$ 演员—评委 $）$ 方法。策略函数 $\pi$ 控制智能体，因此被看做“演员"；而 $Q_{\pi}$ 评价 $\pi$ 的表现，帮助改进 $\pi,$ 因此 $Q_{\pi}$ 被看做“评委"。Actor-Critic 通常用 SARSA[State-Action-Reward-State-Action] 训练“评委"$Q_{\pi}$ 。==
+
+==SARSA 算法的目标是对动作价值函数 $Q_{\pi}$ 做精确的近似。 $Q_{\pi}$ 与一个策略 $\pi$相对应; 用不同的策略 $\pi$，对应 $Q_{\pi}$ 就会不同 ; 策略 $\pi$ 越好， $Q_{\pi}$ 的值越大。经验回放数组里的经验 $\left(s_{j}, a_{j}, r_{j}, s_{j+1}\right)$ 是过时的行为策略 $\pi_{\mathrm{old}}$ 收集到的，与当前策略 $\pi_{\mathrm{now}}$ 及其对应的价值 $Q_{\pi_{\text {now }}}$ 对应不上。想要学习 $Q_{\pi}$ 的话，必须要用与当前策略 $\pi_{\text {now }}$收集到的经验，而不能用过时的 $\pi_{\mathrm{old}}$ 收集到的经验。这就是**为什么 SARSA 不能用经验回放**。==
+
+
+
+Sample Efficient Actor-Critic with Experience Replay. ICLR (Poster) 2017 使用重要性采样实现Off-policy的策略
 
 
 
@@ -17,6 +31,10 @@ A2C 属于 Actor-Critic 方法。有一个策略网络 $\pi(a \mid s ; \boldsymb
 $，相当于评委，他的评分可以帮助策略网络 (演员）改 进技术。两个神经网络的结构与上一节中的完全相同，但是本节和上一节用不同的方法 训练两个神经网络。
 
 > 朴素的价值网络是$q(s,a;\boldsymbol w)$，带基线的价值网络是$v(s;\boldsymbol{w})$。
+
+$$
+-\delta_{t}=\underbrace{r_{t}+\gamma \cdot v\left(s_{t+1} ; \boldsymbol{w}\right)}_{\mathrm{TD}}-\underbrace{v\left(s_{t} ; \boldsymbol{w}\right)}_{\text {目标 } \widehat{y}_{t}}
+$$
 
 
 
@@ -91,7 +109,7 @@ A2C 也会构建多个进程，包括多个并行的 worker，与独立的环境
 
 但是这些 worker 是同步的，即每轮训练中，Global network 都会等待每个 worker 各自完成当前的 episode，然后把这些 worker 上传的梯度进行汇总并求平均，得到一个统一的梯度并用其更新主网络的参数，最后用这个参数同时更新所有的 worker。 相当于在 A3C 基础上加入了一个同步的环节。
 
-A2C 跟 A3C 的一个显著区别就是，在任何时刻，不同 worker 使用的其实是同一套策略，它们是完全同步的，更新的时机也是同步的。由于各 worker彼此相同，其实 A2C 就相当于只有两个网络，其中一个 Global network 负责参数更新，另一个负责跟环境交互收集经验，只不过它利用了并行的多个环境，可以收集到去耦合的多组独立经验。
+A2C 跟 A3C 的一个显著区别就是，在任何时刻，A2C中不同 worker 使用的其实是同一套策略，它们是完全同步的，更新的时机也是同步的。由于各 worker彼此相同，其实 ==A2C 就相当于只有两个网络==，其中一个 Global network 负责参数更新，另一个负责跟环境交互收集经验，只不过它利用了并行的多个环境，可以收集到去耦合的多组独立经验。
 
 A2C 和 A3C 的区别用下面的图就可以清晰说明了，A2C 比 A3C 多的就是一个中间过程，一个同步的控制，等所有 worker 都跑完再一起同步，用的是平均梯度或累加梯度。因此这些worker们每时每刻使用的都是同样的策略，而 A3C 中不同的 worker 使用的策略可能都不相同。
 

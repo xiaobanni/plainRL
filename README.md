@@ -49,7 +49,7 @@ Contains implementations:
 * RL
   * DQN
   * A2C
-
+  * DDPG
+  
 * IL
   * GAIL
-    
