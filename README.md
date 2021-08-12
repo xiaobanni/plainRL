@@ -1,4 +1,6 @@
-# Imitation-Learning
+# Imitation-Learning-And-Reinforcement-Learning
+
+> It is recommended to use **Typora** to open the markdown file in the project.
 
 Install virtual environment
 
