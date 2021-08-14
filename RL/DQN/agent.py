@@ -48,6 +48,7 @@ class DQN:
                 # it is actually the value of Q(s) output |A| dimension
                 state = torch.tensor([state], device=self.device, dtype=torch.float)
                 q_value = self.q_value_net(state)
+
                 # output = torch.max(input, dim)
                 # dim is the dimension 0/1 of the max function index,
                 # 0 is the maximum value of each column,
@@ -68,13 +69,13 @@ class DQN:
         # Randomly sample transitions from the replay buffer
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = \
             self.replay_buffer.sample(self.batch_size)
-        state_batch = to_tensor_float(state_batch)
+        state_batch = to_tensor_float(state_batch, device=self.device)
         # tensor([1, 2, 3, 4]).unsqueeze(1)  -> tensor([[1],[2],[3],[4]]) 
         action_batch = torch.tensor(
             action_batch, device=self.device).unsqueeze(1)
-        reward_batch = to_tensor_float(reward_batch)
-        next_state_batch = to_tensor_float(next_state_batch)
-        done_batch = to_tensor_float(done_batch)
+        reward_batch = to_tensor_float(reward_batch, device=self.device)
+        next_state_batch = to_tensor_float(next_state_batch, device=self.device)
+        done_batch = to_tensor_float(done_batch, device=self.device)
 
         # Calculate Q(s,a) at time t
         # q_t=Q(s_t,a_t)

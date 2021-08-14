@@ -13,7 +13,7 @@ import numpy as np
 import gym
 
 
-def to_tensor_float(data, device="cuda"):
+def to_tensor_float(data, device):
     data = torch.tensor(
         data, device=device, dtype=torch.float)
     return data
