@@ -1,63 +1,54 @@
-"""
-@Project ：Imitation-Learning
-@File    ：agent.py
-@Author  ：XiaoBanni
-@Date    ：2021-04-28 21:06
-"""
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import random
 import math
-from model import MLP
-from RL.replay_buffer import ReplayBuffer
-from Common.utils import to_tensor_float
+from typing import Sequence
+from plainRL.common.net.mlp import MLP
+from plainRL.common.buffer.base import ReplayBuffer
+from plainRL.common.utils import to_tensor_float
 
 
 class DQN:
-    def __init__(self, state_dim, action_dim, cfg):
-        """
-
-        :param state_dim: About Task
-        :param action_dim: About Task
-        :param cfg: Config, About DQN setting
-        """
-        self.device = cfg.device
+    def __init__(
+        self, state_dim: int, action_dim: int,
+        buffer_size: int = 1_000_000,
+        hidden_dim: Sequence[int] = [128, 128],
+        device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+        gamma: float = 0.99,
+        epsilon_start: float = 1.0,
+        epsilon_end: float = 0.01,
+        epsilon_decay: int = 5000,
+        batch_size: int = 64,
+        lr: float = 0.001
+    ):
+        self.device = device
         self.action_dim = action_dim
-        self.gamma = cfg.gamma
+        self.gamma = gamma
         self.frame_idx = 0  # Decay count for epsilon
         self.epsilon = lambda frame_idx: \
-            cfg.epsilon_end + \
-            (cfg.epsilon_start - cfg.epsilon_end) * \
-            math.exp(-1. * frame_idx / cfg.epsilon_decay)
-        self.batch_size = cfg.batch_size
-        self.q_value_net = MLP(state_dim, action_dim, hidden_dim=cfg.hidden_dim).to(self.device)
-        self.target_net = MLP(state_dim, action_dim, hidden_dim=cfg.hidden_dim).to(self.device)
-        self.optimizer = optim.Adam(self.q_value_net.parameters(), lr=cfg.lr)
+            epsilon_end + \
+            (epsilon_start - epsilon_end) * \
+            math.exp(-1. * frame_idx / epsilon_decay)
+        self.batch_size = batch_size
+        self.q_value_net = MLP(state_dim, action_dim,
+                               hidden_dim).to(self.device)
+        self.target_net = MLP(state_dim, action_dim,
+                              hidden_dim).to(self.device)
+        self.optimizer = optim.Adam(self.q_value_net.parameters(), lr=lr)
         self.loss = 0
-        self.replay_buffer = ReplayBuffer(cfg.capacity)
+        self.replay_buffer = ReplayBuffer(buffer_size)
 
     def choose_action(self, state):
         # Select actions using e—greedy principle
         self.frame_idx += 1
         if random.random() > self.epsilon(self.frame_idx):
-            # Will not track the gradient
             with torch.no_grad():
                 # Although Q(s,a) is written in the pseudocode of the original paper,
                 # it is actually the value of Q(s) output |A| dimension
-                state = torch.tensor([state], device=self.device, dtype=torch.float)
+                state = torch.tensor(
+                    [state], device=self.device, dtype=torch.float)
                 q_value = self.q_value_net(state)
-
-                # output = torch.max(input, dim)
-                # dim is the dimension 0/1 of the max function index,
-                # 0 is the maximum value of each column,
-                # 1 is the maximum value of each row
-                # The function will return two tensors,
-                # the first tensor is the maximum value of each row;
-                # the second tensor is the index of the maximum value of each row.
-
-                # .item(): only one element tensors can be converted to Python scalars
                 action = q_value.max(1)[1].item()
         else:
             action = random.randrange(self.action_dim)
@@ -70,11 +61,12 @@ class DQN:
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = \
             self.replay_buffer.sample(self.batch_size)
         state_batch = to_tensor_float(state_batch, device=self.device)
-        # tensor([1, 2, 3, 4]).unsqueeze(1)  -> tensor([[1],[2],[3],[4]]) 
+        # tensor([1, 2, 3, 4]).unsqueeze(1)  -> tensor([[1],[2],[3],[4]])
         action_batch = torch.tensor(
             action_batch, device=self.device).unsqueeze(1)
         reward_batch = to_tensor_float(reward_batch, device=self.device)
-        next_state_batch = to_tensor_float(next_state_batch, device=self.device)
+        next_state_batch = to_tensor_float(
+            next_state_batch, device=self.device)
         done_batch = to_tensor_float(done_batch, device=self.device)
 
         # Calculate Q(s,a) at time t
@@ -100,7 +92,8 @@ class DQN:
         # it will not have a gradient grad
         next_q_value = self.target_net(next_state_batch).max(1)[0].detach()
         # For the termination state, the corresponding expected_q_value is equal to reward
-        expected_q_value = reward_batch + self.gamma * next_q_value * (1 - done_batch)  # shape: 32
+        expected_q_value = reward_batch + self.gamma * \
+            next_q_value * (1 - done_batch)  # shape: 32
         # loss_fn = torch.nn.MSELoss(reduce=True, size_average=True)
         # reduce = False，return loss in vector form
         # reduce = True， return loss in scalar form
@@ -120,4 +113,5 @@ class DQN:
         torch.save(self.target_net.state_dict(), path + "dqn_checkpoint.pth")
 
     def load(self, path):
-        self.target_net.load_state_dict(torch.load(path + "dqn_checkpoint.pth"))
+        self.target_net.load_state_dict(
+            torch.load(path + "dqn_checkpoint.pth"))

@@ -10,7 +10,7 @@ import os
 import sys
 import torch
 import numpy as np
-import gym
+import gymnasium as gym
 
 
 def to_tensor_float(data, device):

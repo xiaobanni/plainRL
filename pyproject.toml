@@ -1,0 +1,8 @@
+[project]
+name = "plainRL"
+version = "0.0.1"
+description = "A simple reinforcement learning library"
+dependencies = [
+    "python >= 3.7",
+    "gymnasium ~= 0.28.1"
+]

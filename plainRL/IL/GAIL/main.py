@@ -8,7 +8,7 @@
 """
 import os
 import datetime
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 from Common.utils import get_env_version, get_env_information
@@ -46,7 +46,7 @@ class GAILConfig:
         self.env = env
         self.nums_envs = 16
         self.result_path = curr_dir + os.sep + "results" + os.sep \
-                           + self.env + os.sep + curr_time + os.sep
+            + self.env + os.sep + curr_time + os.sep
         self.a2c_hidden_dim = 256
         self.discriminator_hidden_dim = 128
         self.gamma = 0.99
@@ -58,7 +58,8 @@ class GAILConfig:
         self.ppo_epochs = 4
         self.ppo_update_frequency = 3
         self.threshold_reward = -200
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
 
 
 def train(cfg, envs, agent):
@@ -116,7 +117,8 @@ def train(cfg, envs, agent):
             log_probs.append(log_prob)
             values.append(value)
             rewards.append(torch.FloatTensor(reward).to(cfg.device))
-            masks.append(torch.FloatTensor(1 - done).unsqueeze(1).to(cfg.device))
+            masks.append(torch.FloatTensor(
+                1 - done).unsqueeze(1).to(cfg.device))
             states.append(state)
             actions.append(action)
 
@@ -124,13 +126,16 @@ def train(cfg, envs, agent):
             frame_idx += 1
 
             if frame_idx % 200 == 0:
-                test_reward = np.mean([env_test(cfg.env, agent.model) for _ in range(10)])
+                test_reward = np.mean(
+                    [env_test(cfg.env, agent.model) for _ in range(10)])
                 test_rewards.append(test_reward)
                 if smooth_test_rewards:
-                    smooth_test_rewards.append(0.9 * smooth_test_rewards[-1] + 0.1 * test_rewards[-1])
+                    smooth_test_rewards.append(
+                        0.9 * smooth_test_rewards[-1] + 0.1 * test_rewards[-1])
                 else:
                     smooth_test_rewards.append(test_rewards[-1])
-                print('Frame_idx:{}/{}, Reword:{}'.format(frame_idx, cfg.train_frames, test_rewards[-1]))
+                print('Frame_idx:{}/{}, Reword:{}'.format(frame_idx,
+                      cfg.train_frames, test_rewards[-1]))
                 if test_reward > cfg.threshold_reward:
                     early_stop = True
 
@@ -150,21 +155,24 @@ def train(cfg, envs, agent):
         if ppo_update_count % cfg.ppo_update_frequency == 0:
             # PPO improves the Actor part,
             # which is to improve the strategy parameter update
-            ppo_update(agent, cfg, states, actions, log_probs, returns, advantage)
+            ppo_update(agent, cfg, states, actions,
+                       log_probs, returns, advantage)
 
         # Training discriminator
 
         # np.random.randint(start,end,sample_total_num)
         expert_state_action = expert_trajectory[
-                              np.random.randint(0, expert_trajectory.shape[0], 2 * cfg.gae_steps * cfg.nums_envs), :]
-        expert_state_action = torch.FloatTensor(expert_state_action).to(cfg.device)
+            np.random.randint(0, expert_trajectory.shape[0], 2 * cfg.gae_steps * cfg.nums_envs), :]
+        expert_state_action = torch.FloatTensor(
+            expert_state_action).to(cfg.device)
         state_action = torch.cat([states, actions], 1)
         fake = agent.discriminator(state_action)
         real = agent.discriminator(expert_state_action)
         agent.optimizer_discriminator.zero_grad()
         agent.discriminator_loss = \
             agent.discriminator_criterion(fake, torch.ones((states.shape[0], 1)).to(cfg.device)) + \
-            agent.discriminator_criterion(real, torch.zeros((expert_state_action.size(0), 1)).to(cfg.device))
+            agent.discriminator_criterion(real, torch.zeros(
+                (expert_state_action.size(0), 1)).to(cfg.device))
         agent.discriminator_loss.backward()
         agent.optimizer_discriminator.step()
 

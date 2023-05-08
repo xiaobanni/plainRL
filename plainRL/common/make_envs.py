@@ -6,8 +6,8 @@
 @Desc    : Create multiple environments for synchronized A2C training
 """
 
-from Common.multiprocessing_env import SubprocVecEnv
-import gym
+from plainRL.common.multiprocessing_env import SubprocVecEnv
+import gymnasium as gym
 
 
 def make_env(env_name):

@@ -13,7 +13,7 @@
 
 import os
 import datetime
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 from agent import A2C
@@ -48,13 +48,14 @@ class A2CConfig:
         self.algo = "A2C"
         self.env = env
         self.result_path = curr_dir + os.sep + "results" + os.sep \
-                           + self.env + os.sep + curr_time + os.sep
+            + self.env + os.sep + curr_time + os.sep
         self.gamma = 0.99
         self.lr = 3e-4
         self.train_frames = train_frames
         self.TD_step_length = 5
         self.hidden_dim = 256
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
 
 
 def train(cfg, envs, agent):
@@ -75,7 +76,8 @@ def train(cfg, envs, agent):
 
         for _ in range(cfg.TD_step_length):
             n_state = torch.FloatTensor(n_state).to(cfg.device)
-            n_dist, n_value = agent.model(n_state)  # Call function: forward, pi(a|s), V(s) 
+            # Call function: forward, pi(a|s), V(s)
+            n_dist, n_value = agent.model(n_state)
             n_action = n_dist.sample()
 
             # .cpu()
@@ -87,7 +89,8 @@ def train(cfg, envs, agent):
 
             # When the `done = True` of a certain environment,
             # there will be a function to call the `reset()` of the environment
-            n_next_state, n_reward, n_done, _ = envs.step(n_action.cpu().numpy())
+            n_next_state, n_reward, n_done, _ = envs.step(
+                n_action.cpu().numpy())
 
             # .log_prob()
             # takes the log_e of the probability (of some actions).
@@ -110,25 +113,31 @@ def train(cfg, envs, agent):
             entropy += n_dist.entropy().mean()
             log_probs.append(n_log_prob)
             values.append(n_value)
-            rewards.append(torch.FloatTensor(n_reward).unsqueeze(1).to(cfg.device))
+            rewards.append(torch.FloatTensor(
+                n_reward).unsqueeze(1).to(cfg.device))
             # type(n_done): <class 'numpy.ndarray'>
-            masks.append(torch.FloatTensor(1 - n_done).unsqueeze(1).to(cfg.device))
+            masks.append(torch.FloatTensor(
+                1 - n_done).unsqueeze(1).to(cfg.device))
 
             n_state = n_next_state  # Just for clarity
             frame_idx += 1
 
             # test
             if frame_idx % 200 == 0:
-                test_rewards.append(np.mean([env_test(cfg.env, agent.model) for _ in range(10)]))
+                test_rewards.append(
+                    np.mean([env_test(cfg.env, agent.model) for _ in range(10)]))
                 if smooth_test_rewards:
-                    smooth_test_rewards.append(0.9 * smooth_test_rewards[-1] + 0.1 * test_rewards[-1])
+                    smooth_test_rewards.append(
+                        0.9 * smooth_test_rewards[-1] + 0.1 * test_rewards[-1])
                 else:
                     smooth_test_rewards.append(test_rewards[-1])
-                print('Frame_idx:{}/{}, Reword:{}'.format(frame_idx, cfg.train_frames, test_rewards[-1]))
+                print('Frame_idx:{}/{}, Reword:{}'.format(frame_idx,
+                      cfg.train_frames, test_rewards[-1]))
 
         n_next_state = torch.FloatTensor(n_next_state).to(cfg.device)
         _, n_next_value = agent.model(n_next_state)  # V(s_{t+TD_step_length})
-        returns = agent.compute_returns(n_next_value, rewards, masks)  # r_t+gamma_(v_{t+1})
+        returns = agent.compute_returns(
+            n_next_value, rewards, masks)  # r_t+gamma_(v_{t+1})
 
         # .cat():
         # torch.cat(tensors, dim=0, *, out=None) → Tensor
@@ -138,7 +147,8 @@ def train(cfg, envs, agent):
 
         # From five 16-dimensional tensors to one 80-dimensional tensor
         log_probs = torch.cat(log_probs)
-        returns = torch.cat(returns).detach()  # Does not participate in gradient operations
+        # Does not participate in gradient operations
+        returns = torch.cat(returns).detach()
         values = torch.cat(values)
         # baseline: Q(s,a) - V(s)
         advantage = returns - values

@@ -8,7 +8,7 @@
 
 import os
 import datetime
-import gym
+import gymnasium as gym
 import torch
 import numpy as np
 from Common.utils import save_results, get_env_version, get_env_information, get_smooth_rewards
@@ -49,7 +49,7 @@ class DDPGConfig:
         self.algo = "DDPG"
         self.env = env
         self.result_path = curr_dir + os.sep + "results" + os.sep \
-                           + self.env + os.sep + curr_time + os.sep
+            + self.env + os.sep + curr_time + os.sep
         self.value_lr = 1e-3
         self.policy_lr = 1e-4
         self.gamma = 0.99
@@ -60,7 +60,8 @@ class DDPGConfig:
         self.hidden_dim = 256
         self.train_eps = train_eps
         self.replay_buffer_size = 1000000
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu")
 
     def set_dim(self, state_dim, action_dim):
         self.state_dim = state_dim
@@ -90,7 +91,8 @@ def train(cfg, env, agent):
                 agent.update(cfg)
             state = next_state
             if done:
-                print('Episode:{}/{}, Reword:{}'.format(i_episode + 1, cfg.train_eps, total_reward))
+                print('Episode:{}/{}, Reword:{}'.format(i_episode +
+                      1, cfg.train_eps, total_reward))
                 rewards.append(total_reward)
     print("=====Finish training!=====")
     return rewards, get_smooth_rewards(rewards, smooth_rate=0.9)
@@ -108,7 +110,8 @@ def main():
     rewards, smooth_rewards = train(cfg, env, agent)
     os.makedirs(cfg.result_path)
     save_results(rewards, smooth_rewards, tag='train', path=cfg.result_path)
-    plot_rewards(rewards, smooth_rewards, tag='train', env=cfg.env, algo=cfg.algo, path=cfg.result_path)
+    plot_rewards(rewards, smooth_rewards, tag='train',
+                 env=cfg.env, algo=cfg.algo, path=cfg.result_path)
 
 
 if __name__ == '__main__':

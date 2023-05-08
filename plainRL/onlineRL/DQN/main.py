@@ -1,10 +1,9 @@
 import os
 import datetime
-import gym
+import gymnasium as gym
 import torch
 from agent import DQN
-from Common.utils import save_results, get_env_version, get_env_information
-from Common.plot import plot_rewards
+from plainRL.common.utils import save_results, get_env_version, get_env_information
 
 curr_dir = os.path.dirname(__file__)
 curr_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -35,13 +34,14 @@ def train(cfg, env, agent):
     rewards = []
     smooth_rewards = []
     for i_episode in range(cfg.train_eps):
-        state = env.reset()
+        state, _ = env.reset()
         done = False
         total_reward = 0
         while not done:
             env.render()
             action = agent.choose_action(state)
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            done = terminated | truncated
             total_reward += reward
             agent.replay_buffer.push(state, action, reward, next_state, done)
             state = next_state
@@ -65,15 +65,13 @@ def main():
     # cfg = DQNConfig(env="MountainCar-v0", train_eps=500)
     get_env_information(env_name=cfg.env)
     env = gym.make(cfg.env)
-    env.seed(0)
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.n
-    agent = DQN(state_dim, action_dim, cfg)
+    agent = DQN(state_dim, action_dim)
     rewards, smooth_rewards = train(cfg, env, agent)
     os.makedirs(cfg.result_path)
     agent.save(path=cfg.result_path)
     save_results(rewards, smooth_rewards, tag='train', path=cfg.result_path)
-    plot_rewards(rewards, smooth_rewards, tag='train', env=cfg.env, algo=cfg.algo, path=cfg.result_path)
 
 
 if __name__ == '__main__':
